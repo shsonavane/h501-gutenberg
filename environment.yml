@@ -1,0 +1,12 @@
+name: h501-gutenberg
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - ipykernel
+      - pandas
+      - seaborn
+
+
