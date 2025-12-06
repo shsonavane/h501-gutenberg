@@ -1,20 +1,26 @@
 import pandas as pd
+from tt_gutenberg.utils import load_gutenberg_data
 
 def list_authors(by_languages=True, alias=True):
-    url = "https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-03/gutenberg_authors.csv"
-    df = pd.read_csv(url)
+    """
+    Return author aliases sorted by translation count across languages.
+    """
+    df = load_gutenberg_data()
 
-    # Drop rows where alias is missing
+    # Drop missing authors
     df = df.dropna(subset=["alias"])
 
-    # Create a new column counting number of aliases (split by '/')
-    df["alias_count"] = df["aliases"].fillna("").apply(lambda x: len(str(x).split("/")))
+    # Compute translation count per author (unique languages)
+    translation_counts = (
+        df.groupby(["gutenberg_author_id", "alias"])["language"]
+          .nunique()
+          .reset_index(name="translation_count")
+    )
 
-    # Sort by alias_count, highest first
-    df_sorted = df.sort_values("alias_count", ascending=False)
+    # Sort by translation count (descending)
+    df_sorted = translation_counts.sort_values("translation_count", ascending=False)
 
-    # Return only aliases if requested
     if alias:
         return df_sorted["alias"].tolist()
     else:
-        return df_sorted[["author", "alias_count"]]
+        return df_sorted.head(20)
